@@ -3,16 +3,17 @@ from django.http import HttpResponse
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .config import fusion_pages
-from .config import fusion_response
+from .config import fusion_pages, failure
+from .config import fusion_response, fusion_routes
+from rest_framework import response
+
+
+access_token = "access_token"
+refresh_token = "refresh_token"
 
 # For All routing and Template pages see config
-
-
 def initialView(request):
-    return render(request=request, template_name=fusion_pages.landing_page , context={})
-
-
+    return render(request=request, template_name=fusion_pages.landing , context={})
 
 
 class Authentications:
@@ -26,56 +27,86 @@ class Authentications:
 
     def token_checker(self, request):
         try:
-            token = request.COOKIES.get("refresh_token")
-            if token is None:
-                raise Exception("token Not found in the cookie")
+            token = request.COOKIES.get(access_token)
+            if not token:
+                raise failure(message="token not found in cookie")
             user_id = AccessToken(token).get("user_id")
-            return User.objects.filter(username = user_id).first()
+            return User.objects.filter(id=user_id).first()
+        except failure as f:
+            print(f.err)
+            return None
         except Exception as e:
+            print(e)
             return None
 
     
     def login(self, request):
         if request.method == "POST":
-            username = request.POST.get('username')
-            password = request.POST.get('password')
-            if username is None or password is None:
-                return render(request, fusion_pages.login, fusion_response.failure(code=422, message="please fill the details"))
-            user = authenticate(request, username = username, password = password)
-            if user is None:
-                return render(request, fusion_pages.login, fusion_response.failure(code=404, message="user not available"))
-            new_token = self.token_generator(user)
-            response = redirect(fusion_pages.chat)
-            response.set_cookie("refresh_token", new_token.get("refresh_token"))
-            response.set_cookie("access_token", new_token.get("access_token"))
-            return response
-        return render(request=request, template_name=fusion_pages.login, context={})
+            try:
+                username = request.POST.get('username')
+                password = request.POST.get('password')
+                if not username or not password or len(username) < 5 or len(password) < 5:
+                    raise failure(code=422, message="username and password length should be greater than 5")
+                user = authenticate(request, username = username, password = password)
+                if user is None:
+                    raise failure(code=404, message="user not found")
+                new_token = self.token_generator(user)
+                response = redirect(fusion_routes.chats_dashboard)
+                response.set_cookie("refresh_token", new_token.get(refresh_token))
+                response.set_cookie("access_token", new_token.get(access_token))
+                return response
+            except failure as f:
+                print(f.err)
+                return render(request, fusion_pages.login, f.err)
+            except Exception as e:
+                return render(request=request, template_name=fusion_pages.login)
+        return render(request=request, template_name=fusion_pages.login)
+
 
     def register(self, request):
         if request.method == "POST":
-            username = request.POST.get('username')
-            password = request.POST.get('password')
-            if username is None or password is None:
-                return render(request, fusion_pages.register_page,fusion_response.failure(code=422, message="please fill the details"))
-            if User.objects.filter(username = username).first():
-                return render(request, fusion_pages.register_page, fusion_response.failure(code=409, message="user already exists"))
-            User.objects.create_user(email = username, password=password)
-            return redirect(fusion_pages.login_page)
-        return render(request=request, template_name=fusion_pages.register_page)
-    
+            try:
+                username = request.POST.get('username')
+                password = request.POST.get('password')
+                print(type(username), password)
+                if not username or not password or len(username) < 5 or len(password) < 5:
+                    raise failure(code=422, message="username and password length should be greater than 5")
+                if User.objects.filter(username = username).first():
+                    raise failure(code=422 ,message="User already exists")
+                User.objects.create_user(username = username, password=password)
+                return redirect(fusion_routes.login)
+            except failure as f:
+                print(f.err)
+                return render(request, fusion_pages.register, f.err)
+            except Exception as e:
+                print(e)
+                return render(request=request, template_name=fusion_pages.register)
+        return render(request=request, template_name=fusion_pages.register)
 
-
-    def chats_dashboard(self, request):
-        user = self.token_checker(request)
-        if user is None:
-            return redirect(fusion_pages.login)
-        return render(request, fusion_pages.chat, context={})
 
 
     def logout(self, request):
-        response = redirect(fusion_pages.login)
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
+        response = redirect(fusion_routes.login)
+        response.delete_cookie(access_token)
+        response.delete_cookie(refresh_token)
         return response
 
+
+
+class fusion(Authentications):
+    def chats(self, request):
+        return HttpResponse("chats")
+
+    def current_chat(self, request, id):
+        return HttpResponse("current chats")
+
+    def chat_dashboard(self, request):
+        user = self.token_checker(request)
+        print(user)
+        if user is None:
+            return redirect(fusion_routes.login)
+        return render(request, fusion_pages.chats_dashboard)
     
+    def chatHistory(self, request):
+        return HttpResponse("This is the response")
+
