@@ -1,0 +1,60 @@
+
+
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fusion AI</title>
+</head>
+<body>
+    
+    <h1>Select Models</h1>
+    <form action="{% url 'setting' %}" method="post">
+        {% csrf_token %}
+        {% for key, provider in data.items %}
+        <div>
+            <h2>{{ provider.name }}</h2>
+
+            <!-- "None" option — selected if no model saved for this provider -->
+            <label>
+                <input type="radio" name="{{ key }}_model" value=""
+                    {% if not saved_models|get_item:key %}checked{% endif %}>
+                None
+            </label><br>
+
+            {% for model in provider.models %}
+            <label>
+                <input type="radio" name="{{ key }}_model" value="{{ model.model_id }}"
+                    {% if saved_models|get_item:key == model.model_id %}checked{% endif %}>
+                {{ model.name }}
+            </label><br>
+            {% endfor %}
+
+            <input type="text" name="{{ key }}_custom_model" placeholder="Or type a custom model ID">
+        </div>
+        <hr>
+        {% endfor %}
+        <button type="submit">Save Models</button>
+    </form>
+
+    <!-- API Keys form unchanged -->
+    <h1>API Keys</h1>
+    <form action="{% url 'apikeys' %}" method="post">
+        {% csrf_token %}
+        {% for key, provider in data.items %}
+            <div>
+                <h2>{{ provider.name }}</h2>
+                <input type="text" name="{{ key }}_apikey" 
+                    value="{{ saved_keys|get_item:key|default:'' }}"
+                    placeholder="Paste API key for {{ provider.name }}">
+            </div>
+            <hr>
+        {% endfor %}
+        <button type="submit">Save API Keys</button>
+    </form>
+
+</body>
+</html>

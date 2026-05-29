@@ -1,9 +1,13 @@
-
 class fusion_routes():
     register = "register"
     login = "login"
     logout = "logout"
     chats_dashboard = "chats_dashboard"
+    providers = "providers"
+    setting = "setting"
+    apikeys = "apikeys"
+    history = "history"
+    new_chat = "new_chat"
 
 
 
@@ -13,6 +17,7 @@ class fusion_pages():
     chats_dashboard = "chats_dashboard.html"
     login = "login.html"
     register = "register.html"
+    setting = "setting.html"
 
     def __str__(self):
         return self.value
@@ -34,12 +39,13 @@ class failure(Exception):
 
 class fusion_response:
     @staticmethod
-    def success(code, message, data = {}):
+    def success(code, message, data = None):
         return {
             "code": code,
             "status" : "success",
             "message" : message,
-            "data" : data 
+            "data" : data if data is not None else {}
+
         }
 
     

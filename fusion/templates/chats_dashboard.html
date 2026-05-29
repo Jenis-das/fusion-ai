@@ -4,8 +4,148 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fusion Ai</title>
+    <style>
+        *{
+            border:  1px dotted black;
+            margin: 0;
+            padding: 0;
+        }
+        #chat-container{
+            display: grid;
+            grid-template-columns: 30% 70%;
+            grid-template-rows: 100%;
+            height: 90vh;
+        }
+        #side-pannel{
+            display: grid;
+            grid-template-rows: 90% 10%;
+        }
+        #chat-box{
+            display: grid;
+            grid-template-rows: 90% 10%;
+        }
+        #user-chat-area{
+            display: grid;
+            grid-template-columns: 90% 10%;
+        }
+
+        #apikey-window{
+            position: absolute;
+            left: 30px;
+            top: 40px;
+            height: 600px;
+            width: 400px;
+            z-index: 1;
+            background-color: rgb(255, 255, 255);
+            display: none;
+            
+        }
+
+
+    </style>
 </head>
 <body>
     <a href="{% url 'logout' %}">Logout</a>
+
+    <div id="chat-container">
+        
+        <div id="side-pannel">
+            <button id="new-chat-btn">+ New Chat</button>
+            <div id="history">
+                <!-- JS fills this -->
+            </div>
+            <a href="{% url 'setting' %}"><button id="settings">Settings</button></a>
+        </div>
+        <div id="chat-box">
+            <div id="chat-text">
+                chat text here 
+            </div>
+            <form action="" id="user-chat-area">
+                <textarea name="user-chat-box" id="user-chat-box">
+
+                </textarea>
+                <button type="submit">send</button>
+            </form>
+        </div>
+    </div>
+    
+<script>
+    let activeChatId = null;
+
+// load history on page load
+async function loadHistory() {
+    const res = await fetch("{% url 'history' %}");
+    const data = await res.json();
+    renderHistory(data.chats);
+}
+
+function renderHistory(chats) {
+    const container = document.getElementById("history");
+    container.innerHTML = "";
+
+    if (chats.length === 0) {
+        container.innerHTML = "<p style='color:gray;font-size:13px;padding:8px;'>No chats yet</p>";
+        return;
+    }
+
+    chats.forEach(chat => {
+        const div = document.createElement("div");
+        div.classList.add("history-item");
+        if (chat.id === activeChatId) div.classList.add("active");
+        div.innerHTML = `
+            <span class="chat-title">${chat.name}</span>
+            <span class="chat-time">${chat.created_at}</span>
+        `;
+        div.addEventListener("click", () => selectChat(chat.id));
+        container.appendChild(div);
+    });
+}
+
+function selectChat(chatId) {
+    activeChatId = chatId;
+    loadHistory(); // re-render to update active highlight
+    // later: load messages for this chat
+}
+
+// new chat button
+document.getElementById("new-chat-btn").addEventListener("click", async () => {
+    const res = await fetch("{% url 'new_chat' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    });
+    const data = await res.json();
+    activeChatId = data.id;
+    await loadHistory();
+});
+
+// also auto-create chat when user sends first message (if no active chat)
+document.getElementById("user-chat-area").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    if (!activeChatId) {
+        // auto create chat first
+        const res = await fetch("{% url 'new_chat' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        });
+        const data = await res.json();
+        activeChatId = data.id;
+        await loadHistory();
+    }
+
+    const message = document.getElementById("user-chat-box").value;
+    if (!message.trim()) return;
+
+    // next: send message to chat API
+    console.log("send to chat:", activeChatId, message);
+    document.getElementById("user-chat-box").value = "";
+});
+
+// init
+loadHistory();
+</script>
+
+
+
 </body>
 </html>
