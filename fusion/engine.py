@@ -13,11 +13,11 @@ class llms:
         }
         
         self.judge_provider = data.get("judge").get("provider")  # e.g. "groq"
-        
         if self.judge_provider not in self.models_available:
             raise Exception(f"Judge provider '{self.judge_provider}' is not available")
         
         self.workers = data.get("workers")
+        self.users_question = self.workers.get("prompt")
         
         if self.model_checker(self.workers.get("models")):
             raise Exception("Model Not available")
@@ -34,14 +34,15 @@ class llms:
     async def judge(self, judge_data):
         judge_provider = judge_data.get("provider")   # company name: "groq"
         prompt = judge_data.get("prompt")
-
-        combiner = f"You are a Judge AI.\n\nUser Prompt: {prompt}\n\n"
+        users_question = self.users_question 
+        combiner = f"{prompt}\n question Asked by the user '{users_question}' \n\n"
         for data in self.all_ai_result:
             model_name = data.get("model_info", {}).get("model_name")
             provider = data.get("model_info", {}).get("provider")
             content = data.get("content")
             combiner += f"--- {model_name} ({provider}) ---\n{content}\n\n"
-
+        
+        print(combiner)
         judge_result = await self.models_available.get(judge_provider)(combiner, judge_data)
         return {
             "judge_provider": judge_provider,
@@ -362,44 +363,44 @@ class llms:
             }
 
 
-data = {
-    "judge": {
-        "provider": "groq",                          # company name
-        "Api-key": "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",
-        "model_name": "llama-3.1-8b-instant",        # actual model name
-        "prompt": "You are judge all other ai present here now you have to evaluate all the answers provided by the other ai and give the correct answer"
-    },
-    "workers": {
-        "prompt": "If a train travels 120km in 1.5 hours, what is its speed in km/h and m/s ?",
-        "models": {
-            "gemini": {
-                "Api-key": "AIzaSyCKjWH_anOmP3JvMdGfxpXUimCjva6tsKs",
-                "model_name": "gemini-2.5-flash",    # actual model name
-            },
-            "openrouter": {
-                "Api-key": "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",
-                "model_name": "openrouter/free",     # actual model name
-            },
-            "groq": {
-                "Api-key": "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",
-                "model_name": "llama-3.1-8b-instant", # actual model name
-            },
-            "sambanova": {
-                "Api-key": "c67624f7-c28f-4a00-81b0-9fe3d23ef977",
-                "model_name": "DeepSeek-V3.1",       # actual model name
-            },
-            "cerebras": {
-                "Api-key": "csk-82thdd29n4mxwtx3kft4jmyw594r3426px2m4kn5feyh9hkp",
-                "model_name": "gpt-oss-120b",        # actual model name
-            },
-            "mistral": {
-                "Api-key": "B493Xa3BneNY00eERygvEVhG1MUMzrVo",
-                "model_name": "mistral-small-latest", # actual model name
-            },
-        }
-    }
-}
+# data = {
+#     "judge": {
+#         "provider": "groq",                          # company name
+#         "Api-key": "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",
+#         "model_name": "llama-3.1-8b-instant",        # actual model name
+#         "prompt": "You are judge all other ai present here now you have to evaluate all the answers provided by the other ai and give the correct answer"
+#     },
+#     "workers": {
+#         "prompt": "If a train travels 120km in 1.5 hours, what is its speed in km/h and m/s ?",
+#         "models": {
+#             "gemini": {
+#                 "Api-key": "AIzaSyCKjWH_anOmP3JvMdGfxpXUimCjva6tsKs",
+#                 "model_name": "gemini-2.5-flash",    # actual model name
+#             },
+#             # "openrouter": {
+#             #     "Api-key": "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",
+#             #     "model_name": "openrouter/free",     # actual model name
+#             # },
+#             "groq": {
+#                 "Api-key": "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",
+#                 "model_name": "llama-3.1-8b-instant", # actual model name
+#             },
+#             # "sambanova": {
+#             #     "Api-key": "c67624f7-c28f-4a00-81b0-9fe3d23ef977",
+#             #     "model_name": "DeepSeek-V3.1",       # actual model name
+#             # },
+#             "cerebras": {
+#                 "Api-key": "csk-82thdd29n4mxwtx3kft4jmyw594r3426px2m4kn5feyh9hkp",
+#                 "model_name": "gpt-oss-120b",        # actual model name
+#             },
+#             "mistral": {
+#                 "Api-key": "B493Xa3BneNY00eERygvEVhG1MUMzrVo",
+#                 "model_name": "mistral-small-latest", # actual model name
+#             },
+#         }
+#     }
+# }
 
-result = llms(data)
-print(result.all_ai_result)
-print(result.judge_result)
+# result = llms(data)
+# print(result.all_ai_result)
+# print(result.judge_result)

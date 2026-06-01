@@ -142,13 +142,13 @@ class fusion(Authentications):
                 return HttpResponse(f"save failed: {e}")
         
         return redirect(fusion_routes.setting)
-    
+
 
 
     def settings(self, request):
         user = self.token_checker(request)
         if user is None:
-            return redirect(fusion_routes.login)
+                 redirect(fusion_routes.login)
 
         if request.method == "POST":
             try:
@@ -211,6 +211,7 @@ class fusion(Authentications):
 
     
 
+
     def history(self, request):
         user = self.token_checker(request)
         if user is None:
@@ -227,6 +228,24 @@ class fusion(Authentications):
         ]
         return JsonResponse({"chats": data})
 
+    def delete_chat(self, request, id):
+        user = self.token_checker(request)
+        if user is None:
+            return redirect(fusion_routes.login)
+        if request.method == "GET":
+            try:
+                chat = Chat.objects.filter(user = user, id = id).first()
+                chat.delete()
+                print("chat deleted")
+                return HttpResponse("chat deleted")
+            except Exception as e:
+                print(e)
+                # return HttpResponse("")
+        return redirect(fusion_routes.chats_dashboard)
+    
+
+
+
     def new_chat(self, request):
         user = self.token_checker(request)
         if user is None:
@@ -238,9 +257,10 @@ class fusion(Authentications):
                 name="New Chat"  # will be renamed after first message
             )
             return JsonResponse({"id": chat.id, "name": chat.name})
-        
         return JsonResponse({"error": "invalid"}, status=400)
     
+
+
     def current_chat(self, request, id):
         user = self.token_checker(request)
         if user is None:
@@ -258,6 +278,3 @@ class fusion(Authentications):
                 "claude" : test_chat
             }
         })
-
-
-    

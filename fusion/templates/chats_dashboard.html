@@ -40,7 +40,16 @@
             display: none;
             
         }
+        #worker-ai-response{
+            height: 50px;
+            overflow: scroll;
+            overflow-y: hidden;
+            border: 1px solid black;
+        }
 
+        #judge-ai-response{
+            border: 1px solid black;
+        }
 
     </style>
 </head>
@@ -58,92 +67,23 @@
         </div>
         <div id="chat-box">
             <div id="chat-text">
-                chat text here 
+                <div id="worker-ai-response">
+                    workers data
+                </div>
+                <div id="judge-ai-response">
+                    judge data
+                </div>
             </div>
             <form action="" id="user-chat-area">
                 <textarea name="user-chat-box" id="user-chat-box">
-
+                    
                 </textarea>
                 <button type="submit">send</button>
             </form>
         </div>
     </div>
     
-<script>
-    let activeChatId = null;
 
-// load history on page load
-async function loadHistory() {
-    const res = await fetch("{% url 'history' %}");
-    const data = await res.json();
-    renderHistory(data.chats);
-}
-
-function renderHistory(chats) {
-    const container = document.getElementById("history");
-    container.innerHTML = "";
-
-    if (chats.length === 0) {
-        container.innerHTML = "<p style='color:gray;font-size:13px;padding:8px;'>No chats yet</p>";
-        return;
-    }
-
-    chats.forEach(chat => {
-        const div = document.createElement("div");
-        div.classList.add("history-item");
-        if (chat.id === activeChatId) div.classList.add("active");
-        div.innerHTML = `
-            <span class="chat-title">${chat.name}</span>
-            <span class="chat-time">${chat.created_at}</span>
-        `;
-        div.addEventListener("click", () => selectChat(chat.id));
-        container.appendChild(div);
-    });
-}
-
-function selectChat(chatId) {
-    activeChatId = chatId;
-    loadHistory(); // re-render to update active highlight
-    // later: load messages for this chat
-}
-
-// new chat button
-document.getElementById("new-chat-btn").addEventListener("click", async () => {
-    const res = await fetch("{% url 'new_chat' %}", {
-        method: "POST",
-        headers: { "X-CSRFToken": "{{ csrf_token }}" }
-    });
-    const data = await res.json();
-    activeChatId = data.id;
-    await loadHistory();
-});
-
-// also auto-create chat when user sends first message (if no active chat)
-document.getElementById("user-chat-area").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    
-    if (!activeChatId) {
-        // auto create chat first
-        const res = await fetch("{% url 'new_chat' %}", {
-            method: "POST",
-            headers: { "X-CSRFToken": "{{ csrf_token }}" }
-        });
-        const data = await res.json();
-        activeChatId = data.id;
-        await loadHistory();
-    }
-
-    const message = document.getElementById("user-chat-box").value;
-    if (!message.trim()) return;
-
-    // next: send message to chat API
-    console.log("send to chat:", activeChatId, message);
-    document.getElementById("user-chat-box").value = "";
-});
-
-// init
-loadHistory();
-</script>
 
 
 
