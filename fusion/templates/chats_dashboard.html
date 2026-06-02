@@ -489,7 +489,7 @@
         .input-area {
             border-top: 1px solid var(--border);
             background: var(--bg2);
-            padding: 14px 20px;
+            padding: 14px 20px 30px;
             flex-shrink: 0;
         }
 
@@ -580,7 +580,9 @@
             gap: 12px;
             color: var(--text3);
         }
-
+        .logo-link{
+            text-decoration: none;
+        }
         .no-chat-icon { font-size: 40px; }
         .no-chat-text { font-size: 14px; }
 
@@ -623,7 +625,7 @@
     <!-- ── Sidebar ── -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span class="logo">Fusion<span>AI</span></span>
+            <a href="{% url 'chats_dashboard' %}" class="logo-link" ><span class="logo">Fusion<span>AI</span></span></a>
             <div class="sidebar-actions">
                 <button class="icon-btn" onclick="loadHistory()" title="Refresh history">↻</button>
             </div>
@@ -658,7 +660,7 @@
             <div class="welcome">
                 <div class="welcome-logo">⚡</div>
                 <div class="welcome-title">Fusion AI</div>
-                <div class="welcome-sub">Multiple AI models answer your question simultaneously. A judge AI synthesizes the best response.</div>
+                <div class="welcome-sub">Welcome to Fusion Ai </div>
             </div>
         </div>
 

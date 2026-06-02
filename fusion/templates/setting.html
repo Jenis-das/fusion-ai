@@ -353,6 +353,9 @@
             pointer-events: none;
         }
 
+        .logo-link{
+            text-decoration: none;
+        }
         .toast.show { opacity: 1; transform: translateY(0); }
         .toast.ok { border-color: var(--green); color: var(--green); }
         .toast.err { border-color: var(--red); color: var(--red); }
@@ -399,7 +402,7 @@
 
     <!-- Header -->
     <header class="header">
-        <span class="logo">Fusion<span>AI</span></span>
+        <a href="{% url 'chats_dashboard' %}" class="logo-link" ><span class="logo">Fusion<span>AI</span></span></a>
         <nav class="header-nav">
             <a href="{% url 'chats_dashboard' %}" class="nav-btn">
                 ← Dashboard
@@ -469,7 +472,7 @@
                 <div class="save-bar">
                     <span class="save-hint">Changes apply to new conversations</span>
                     <button type="submit" class="save-btn" id="save-models-btn">
-                        <span class="save-btn-icon">💾</span> Save Models
+                        <span class="save-btn-icon"></span> Save Models
                     </button>
                 </div>
             </form>
@@ -512,7 +515,7 @@
                 <div class="save-bar">
                     <span class="save-hint">Keys are stored securely per account</span>
                     <button type="submit" class="save-btn" id="save-keys-btn">
-                        <span class="save-btn-icon">🔑</span> Save API Keys
+                        <span class="save-btn-icon"></span> Save API Keys
                     </button>
                 </div>
             </form>
