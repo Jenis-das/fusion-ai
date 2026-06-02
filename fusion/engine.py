@@ -162,6 +162,8 @@ class llms:
         return f"Unknown error from {provider}"
 
     # ── Judge: stateless, sees only current question + worker answers ─────────
+    # engine.py
+
     async def judge(self, judge_data):
         judge_provider = judge_data.get("provider")
         prompt = judge_data.get("prompt")
@@ -173,13 +175,16 @@ class llms:
             content    = data.get("content")
             combiner  += f"--- {model_name} ({provider}) ---\n{content}\n\n"
 
-        judge_result = await self.models_available[judge_provider](combiner, judge_data)
+        # ✅ Judge gets NO history — just the combined worker answers
+        judge_result = await self.models_available[judge_provider](
+            prompt=combiner, judge=judge_data   # no messages= arg
+        )
         return {
             "judge_provider": judge_provider,
             "result": judge_result
         }
 
-    # ── Workers: receive full conversation history ────────────────────────────
+
     async def call_worker(self, worker_data):
         prompt = worker_data.get("prompt")
         tasks = []
@@ -189,6 +194,7 @@ class llms:
             if provider_name in worker_data.get("models").keys():
                 if provider_name == self.judge_provider:
                     continue
+                # ✅ Workers get history (judge replies only) + new user prompt
                 messages = self._build_messages(prompt)
                 tasks.append(call_model(messages=messages))
                 provider_names.append(provider_name)
@@ -208,7 +214,9 @@ class llms:
 
         return worker_result
 
+
     def _build_messages(self, new_prompt):
+        # ✅ self.history already contains only judge-selected messages (from views.py)
         messages = list(self.history)
         messages.append({"role": "user", "content": new_prompt})
         return messages
@@ -293,7 +301,7 @@ class llms:
                 contents.append({"role": role, "parts": [{"text": msg["content"]}]})
         else:
             contents = [{"parts": [{"text": prompt}]}]
-
+        print(contents)
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
