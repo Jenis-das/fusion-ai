@@ -1,60 +1,622 @@
-
-
 {% load custom_filters %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fusion AI</title>
+    <title>Fusion AI — Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+    :root {
+        --bg:       #080a0e;   /* reactor void        */
+        --bg2:      #0a0d13;   /* vessel hull         */
+        --bg3:      #0d1219;   /* containment wall    */
+        --bg4:      #121924;   /* inner casing        */
+        --border:   #1a2235;   /* magnetic field coil */
+        --border2:  #243044;   /* energized coil      */
+        --text:     #d0d8f0;   /* neutron white       */
+        --text2:    #7888a8;   /* plasma mist         */
+        --text3:    #3d4a62;   /* dim field           */
+        --accent:   #f97316;   /* plasma core         */
+        --accent2:  #c2550e;   /* ignition ember      */
+        --green:    #eed622;   /* Cherenkov glow      */
+        --red:      #ff4d4d;   /* breach alarm        */
+        --mono:     'Space Mono', monospace;
+        --sans:     'DM Sans', sans-serif;
+    }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 14px;
+        }
+
+        body { overflow-x: hidden; }
+
+        /* ── Layout ── */
+        .page {
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            height: 56px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: var(--mono);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+        }
+
+        .logo span { color: var(--text2); font-weight: 400; }
+
+        .header-nav {
+            display: flex;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .nav-btn {
+            background: none;
+            border: 1px solid transparent;
+            color: var(--text2);
+            font-family: var(--sans);
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all .15s;
+        }
+
+        .nav-btn:hover { color: var(--text); background: var(--bg3); border-color: var(--border); }
+        .nav-btn.active { color: var(--text); background: var(--bg4); border-color: var(--border2); }
+
+        /* ── Main Content ── */
+        .main {
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .page-sub {
+            color: var(--text3);
+            font-size: 13px;
+            margin-bottom: 2rem;
+        }
+
+        /* ── Tab Bar ── */
+        .tabs {
+            display: flex;
+            gap: 2px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 2rem;
+            width: fit-content;
+        }
+
+        .tab {
+            padding: 8px 20px;
+            border-radius: 7px;
+            border: none;
+            background: none;
+            color: var(--text2);
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .tab.active {
+            background: var(--bg4);
+            color: var(--text);
+            border: 1px solid var(--border2);
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Provider Grid ── */
+        .providers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .provider-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color .2s;
+        }
+
+        .provider-card:hover { border-color: var(--border2); }
+        .provider-card.has-key { border-color: var(--border2); }
+
+        .provider-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .provider-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            font-family: var(--mono);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text3);
+            transition: background .3s;
+        }
+
+        .status-dot.active { background: var(--green); box-shadow: 0 0 6px rgba(62,207,142,.4); }
+
+        /* Key input */
+        .key-input-wrap {
+            position: relative;
+        }
+
+        .key-input {
+            width: 100%;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 36px 9px 12px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 12px;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .key-input:focus { border-color: var(--accent); }
+        .key-input::placeholder { color: var(--text3); font-family: var(--sans); }
+
+        .toggle-vis {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text3);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 2px;
+            transition: color .15s;
+        }
+
+        .toggle-vis:hover { color: var(--text2); }
+
+        /* Model select */
+        .model-section { margin-top: 16px; }
+
+        .model-label {
+            font-size: 11px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .model-options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .model-radio {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg3);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .model-radio:hover { border-color: var(--border2); background: var(--bg4); }
+
+        .model-radio input[type="radio"] {
+            accent-color: var(--accent);
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .model-radio-label { color: var(--text); font-size: 12.5px; }
+
+        .model-none {
+            color: var(--text3);
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        /* Custom model input */
+        .custom-model-wrap { margin-top: 8px; }
+
+        .custom-model-input {
+            width: 100%;
+            background: var(--bg3);
+            border: 1px dashed var(--border2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 12px;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .custom-model-input:focus { border-color: var(--accent); border-style: solid; }
+        .custom-model-input::placeholder { color: var(--text3); font-family: var(--sans); }
+
+        /* ── Save Bar ── */
+        .save-bar {
+            position: sticky;
+            bottom: 0;
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            z-index: 10;
+        }
+
+        .save-hint { color: var(--text3); font-size: 12px; }
+
+        .save-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .save-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+        .save-btn:active { transform: translateY(0); }
+        .save-btn.saved { background: var(--green); }
+        .save-btn.saving { opacity: .7; pointer-events: none; }
+
+        .save-btn-icon { font-size: 15px; }
+
+        /* ── Alert Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            right: 24px;
+            background: var(--bg4);
+            border: 1px solid var(--border2);
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 13px;
+            color: var(--text);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all .25s;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.ok { border-color: var(--green); color: var(--green); }
+        .toast.err { border-color: var(--red); color: var(--red); }
+
+        /* ── Back Link ── */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text2);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 7px;
+            transition: all .15s;
+        }
+
+        .back-link:hover { color: var(--text); background: var(--bg3); }
+
+        /* ── Empty State ── */
+        .empty-card {
+            background: var(--bg2);
+            border: 1px dashed var(--border2);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            color: var(--text3);
+            font-size: 13px;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .header { padding: 0 1rem; }
+            .main { padding: 1.25rem 1rem; }
+            .providers-grid { grid-template-columns: 1fr; }
+            .save-bar { padding: 1rem; }
+            .tabs { width: 100%; }
+            .tab { flex: 1; text-align: center; }
+        }
+    </style>
 </head>
 <body>
-    
-    <h1>Select Models</h1>
-    <form action="{% url 'setting' %}" method="post">
-        {% csrf_token %}
-        {% for key, provider in data.items %}
-        <div>
-            <h2>{{ provider.name }}</h2>
+<div class="page">
 
-            <!-- "None" option — selected if no model saved for this provider -->
-            <label>
-                <input type="radio" name="{{ key }}_model" value=""
-                    {% if not saved_models|get_item:key %}checked{% endif %}>
-                None
-            </label><br>
+    <!-- Header -->
+    <header class="header">
+        <span class="logo">Fusion<span>AI</span></span>
+        <nav class="header-nav">
+            <a href="{% url 'chats_dashboard' %}" class="nav-btn">
+                ← Dashboard
+            </a>
+            <span class="nav-btn active">Settings</span>
+        </nav>
+    </header>
 
-            {% for model in provider.models %}
-            <label>
-                <input type="radio" name="{{ key }}_model" value="{{ model.model_id }}"
-                    {% if saved_models|get_item:key == model.model_id %}checked{% endif %}>
-                {{ model.name }}
-            </label><br>
-            {% endfor %}
+    <!-- Main -->
+    <main class="main">
+        <h1 class="page-title">Settings</h1>
+        <p class="page-sub">Configure your AI providers, models, and API keys</p>
 
-            <input type="text" name="{{ key }}_custom_model" placeholder="Or type a custom model ID">
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('models', this)">Models</button>
+            <button class="tab" onclick="switchTab('keys', this)">API Keys</button>
         </div>
-        <hr>
-        {% endfor %}
-        <button type="submit">Save Models</button>
-    </form>
 
-    <!-- API Keys form unchanged -->
-    <h1>API Keys</h1>
-    <form action="{% url 'apikeys' %}" method="post">
-        {% csrf_token %}
-        {% for key, provider in data.items %}
-            <div>
-                <h2>{{ provider.name }}</h2>
-                <input type="text" name="{{ key }}_apikey" 
-                    value="{{ saved_keys|get_item:key|default:'' }}"
-                    placeholder="Paste API key for {{ provider.name }}">
-            </div>
-            <hr>
-        {% endfor %}
-        <button type="submit">Save API Keys</button>
-    </form>
+        <!-- ── MODELS TAB ── -->
+        <div class="tab-panel active" id="tab-models">
+            <form id="models-form" action="{% url 'setting' %}" method="post">
+                {% csrf_token %}
+                <div class="providers-grid">
+                    {% for key, provider in data.items %}
+                    <div class="provider-card {% if saved_keys|get_item:key %}has-key{% endif %}" id="card-model-{{ key }}">
+                        <div class="provider-header">
+                            <span class="provider-name">{{ key }}</span>
+                            <span class="status-dot {% if saved_models|get_item:key %}active{% endif %}" id="dot-{{ key }}" title="{% if saved_models|get_item:key %}Model selected{% else %}No model selected{% endif %}"></span>
+                        </div>
 
+                        <div class="model-section">
+                            <div class="model-label">Select Model</div>
+                            <div class="model-options">
+                                <!-- None -->
+                                <label class="model-radio">
+                                    <input type="radio" name="{{ key }}_model" value=""
+                                        {% if not saved_models|get_item:key %}checked{% endif %}
+                                        onchange="onModelChange('{{ key }}', '')">
+                                    <span class="model-radio-label model-none">None (disabled)</span>
+                                </label>
+                                <!-- Preset models -->
+                                {% for model in provider.models %}
+                                <label class="model-radio">
+                                    <input type="radio" name="{{ key }}_model" value="{{ model.model_id }}"
+                                        {% if saved_models|get_item:key == model.model_id %}checked{% endif %}
+                                        onchange="onModelChange('{{ key }}', '{{ model.model_id }}')">
+                                    <span class="model-radio-label">{{ model.name }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Custom model -->
+                            <div class="custom-model-wrap">
+                                <input type="text"
+                                    class="custom-model-input"
+                                    name="{{ key }}_custom_model"
+                                    placeholder="Or enter custom model ID…"
+                                    oninput="onCustomModel('{{ key }}', this.value)">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Save bar -->
+                <div class="save-bar">
+                    <span class="save-hint">Changes apply to new conversations</span>
+                    <button type="submit" class="save-btn" id="save-models-btn">
+                        <span class="save-btn-icon">💾</span> Save Models
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ── API KEYS TAB ── -->
+        <div class="tab-panel" id="tab-keys">
+            <form id="keys-form" action="{% url 'apikeys' %}" method="post">
+                {% csrf_token %}
+                <div class="providers-grid">
+                    {% for key, provider in data.items %}
+                    <div class="provider-card {% if saved_keys|get_item:key %}has-key{% endif %}" id="card-key-{{ key }}">
+                        <div class="provider-header">
+                            <span class="provider-name">{{ key }}</span>
+                            <span class="status-dot {% if saved_keys|get_item:key %}active{% endif %}" id="keydot-{{ key }}" title="{% if saved_keys|get_item:key %}Key saved{% else %}No key{% endif %}"></span>
+                        </div>
+
+                        <div class="key-input-wrap">
+                            <input
+                                type="password"
+                                class="key-input"
+                                name="{{ key }}_apikey"
+                                id="key-{{ key }}"
+                                value="{{ saved_keys|get_item:key|default:'' }}"
+                                placeholder="Paste your {{ provider.name }} API key…"
+                                oninput="onKeyInput('{{ key }}', this.value)"
+                                autocomplete="off"
+                            >
+                            <button type="button" class="toggle-vis" onclick="toggleVisibility('{{ key }}')" title="Show/hide">👁</button>
+                        </div>
+
+                        {% if saved_keys|get_item:key %}
+                        <div style="margin-top: 8px; font-size: 11px; color: var(--green);">✓ Key saved</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Save bar -->
+                <div class="save-bar">
+                    <span class="save-hint">Keys are stored securely per account</span>
+                    <button type="submit" class="save-btn" id="save-keys-btn">
+                        <span class="save-btn-icon">🔑</span> Save API Keys
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // ── Tab switching ──
+    function switchTab(name, btn) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    // ── Model dot update ──
+    function onModelChange(key, value) {
+        const dot = document.getElementById('dot-' + key);
+        if (dot) {
+            dot.classList.toggle('active', value !== '');
+            dot.title = value ? 'Model selected' : 'No model selected';
+        }
+    }
+
+    function onCustomModel(key, value) {
+        if (value.trim()) {
+            // Uncheck all radios for this provider
+            document.querySelectorAll(`input[name="${key}_model"]`).forEach(r => r.checked = false);
+            const dot = document.getElementById('dot-' + key);
+            if (dot) { dot.classList.add('active'); }
+        }
+    }
+
+    // ── Key visibility toggle ──
+    function toggleVisibility(key) {
+        const input = document.getElementById('key-' + key);
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // ── Key input ──
+    function onKeyInput(key, value) {
+        const dot = document.getElementById('keydot-' + key);
+        if (dot) {
+            dot.classList.toggle('active', value.trim().length > 0);
+        }
+    }
+
+    // ── Toast ──
+    function showToast(msg, type = '') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast show ' + type;
+        setTimeout(() => t.className = 'toast', 2500);
+    }
+
+    // ── Form submissions — AJAX ──
+    document.getElementById('models-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('save-models-btn');
+        btn.classList.add('saving');
+        btn.innerHTML = '<span class="save-btn-icon">⏳</span> Saving…';
+        const res = await fetch(this.action, {method:'POST', body: new FormData(this)});
+        const text = await res.text();
+        btn.classList.remove('saving');
+        if (res.ok && !text.includes('failed')) {
+            btn.classList.add('saved');
+            btn.innerHTML = '<span class="save-btn-icon">✓</span> Saved!';
+            showToast('Models saved successfully', 'ok');
+            setTimeout(() => {
+                btn.classList.remove('saved');
+                btn.innerHTML = '<span class="save-btn-icon">💾</span> Save Models';
+            }, 2000);
+        } else {
+            showToast('Save failed: ' + text, 'err');
+            btn.innerHTML = '<span class="save-btn-icon">💾</span> Save Models';
+        }
+    });
+
+    document.getElementById('keys-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('save-keys-btn');
+        btn.classList.add('saving');
+        btn.innerHTML = '<span class="save-btn-icon">⏳</span> Saving…';
+        const res = await fetch(this.action, {method:'POST', body: new FormData(this)});
+        const text = await res.text();
+        btn.classList.remove('saving');
+        if (res.ok && !text.includes('failed')) {
+            btn.classList.add('saved');
+            btn.innerHTML = '<span class="save-btn-icon">✓</span> Saved!';
+            showToast('API keys saved', 'ok');
+            setTimeout(() => {
+                btn.classList.remove('saved');
+                btn.innerHTML = '<span class="save-btn-icon">🔑</span> Save API Keys';
+            }, 2000);
+        } else {
+            showToast('Save failed: ' + text, 'err');
+            btn.innerHTML = '<span class="save-btn-icon">🔑</span> Save API Keys';
+        }
+    });
+</script>
 </body>
 </html>

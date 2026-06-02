@@ -1,25 +1,477 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Account — Fusion</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+        --bg:       #080a0e;   /* reactor void        */
+        --bg2:      #0a0d13;   /* vessel hull         */
+        --bg3:      #0d1219;   /* containment wall    */
+        --bg4:      #121924;   /* inner casing        */
+        --border:   #1a2235;   /* magnetic field coil */
+        --border2:  #243044;   /* energized coil      */
+        --text:     #d0d8f0;   /* neutron white       */
+        --text2:    #7888a8;   /* plasma mist         */
+        --text3:    #3d4a62;   /* dim field           */
+        --accent:   #f97316;   /* plasma core         */
+        --accent2:  #c2550e;   /* ignition ember      */
+        --green:    #22d3ee;   /* Cherenkov glow      */
+        --red:      #ff4d4d;   /* breach alarm        */
+        --mono:     'Space Mono', monospace;
+        --sans:     'DM Sans', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      overflow: hidden;
+    }
+
+    /* ── Grid background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: .35;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+      width: 520px;
+      height: 520px;
+      background: radial-gradient(circle, rgba(124,106,247,.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Page layout ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 24px;
+    }
+
+    /* ── Wordmark ── */
+    .wordmark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      animation: fadeDown .5s ease both;
+    }
+
+    .wordmark-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+    }
+
+    .wordmark-icon svg { width: 18px; height: 18px; fill: #fff; }
+
+    .wordmark-text {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.5px;
+    }
+
+    /* ── Card ── */
+    .card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 32px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeUp .55s ease both;
+      box-shadow: 0 0 0 1px rgba(124,106,247,.06), 0 24px 64px rgba(0,0,0,.5);
+    }
+
+    .card-header { display: flex; flex-direction: column; gap: 6px; }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -.4px;
+    }
+
+    .card-sub {
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    /* ── Error banner ── */
+    .error-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(248,113,113,.08);
+      border: 1px solid rgba(248,113,113,.25);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--red);
+      animation: shake .35s ease;
+    }
+
+    .error-banner svg { flex-shrink: 0; width: 15px; height: 15px; fill: var(--red); }
+
+    /* ── Form ── */
+    .form { display: flex; flex-direction: column; gap: 16px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text2);
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 13px;
+      width: 16px;
+      height: 16px;
+      fill: var(--text3);
+      pointer-events: none;
+      transition: fill .2s;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 10px 13px 10px 38px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .field input::placeholder { color: var(--text3); }
+
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,106,247,.15);
+    }
+
+    .input-wrap:focus-within .input-icon { fill: var(--accent); }
+
+    /* password requirements hint */
+    .field-hint {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    /* password toggle */
+    .pw-toggle {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      display: grid;
+      place-items: center;
+    }
+    .pw-toggle svg { width: 16px; height: 16px; fill: var(--text3); transition: fill .2s; }
+    .pw-toggle:hover svg { fill: var(--text2); }
+
+    /* ── Password strength bar ── */
+    .strength-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .strength-bar {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .strength-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      width: 0%;
+      transition: width .3s ease, background .3s ease;
+    }
+
+    .strength-label {
+      font-size: 11px;
+      color: var(--text3);
+      white-space: nowrap;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    /* ── Submit button ── */
+    .btn-primary {
+      width: 100%;
+      padding: 11px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: .2px;
+      transition: opacity .2s, transform .15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background .2s;
+    }
+
+    .btn-primary:hover::after { background: rgba(255,255,255,.06); }
+    .btn-primary:active { transform: scale(.985); }
+
+    /* ── Terms note ── */
+    .terms {
+      font-size: 11.5px;
+      color: var(--text3);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text3);
+      font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Footer link ── */
+    .card-footer {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .card-footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      transition: opacity .2s;
+    }
+    .card-footer a:hover { opacity: .8; }
+
+    /* ── Animations ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-6px); }
+      75%      { transform: translateX(6px); }
+    }
+  </style>
 </head>
 <body>
-    <h1>Login page</h1>
-    <form action="{%url 'register'%}" method="post">
-        {% csrf_token %}
-        <label for="username">
-            <h2>username</h2>
-        </label>
-        <input type="text" name="username" >
-        <label for="password">
-            <h2>password</h2>
-        </label>
-        <input type="text" name="password">
-        <button type="submit">register</button>
+
+<div class="page">
+
+  <!-- Wordmark -->
+  <a href="/" class="wordmark">
+    <span class="wordmark-icon">
+      <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    </span>
+    <span class="wordmark-text">Fusion</span>
+  </a>
+
+  <!-- Card -->
+  <div class="card">
+
+    <div class="card-header">
+      <h1 class="card-title">Create account</h1>
+      <p class="card-sub">Get started with Fusion — free forever</p>
+    </div>
+
+    {% if error %}
+    <div class="error-banner">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      {{ error }}
+    </div>
+    {% endif %}
+
+    <form class="form" method="POST" action="{% url 'register' %}">
+      {% csrf_token %}
+
+      <!-- Email -->
+      <div class="field">
+        <label for="email">Email</label>
+        <div class="input-wrap">
+          <svg class="input-icon" viewBox="0 0 24 24">
+            <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+          </svg>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+            value="{{ request.POST.email|default:'' }}"
+          />
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <svg class="input-icon" viewBox="0 0 24 24">
+            <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+          </svg>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+            required
+            oninput="updateStrength(this.value)"
+          />
+          <button type="button" class="pw-toggle" onclick="togglePw('password', this)" aria-label="Toggle password visibility">
+            <svg id="eye-password" viewBox="0 0 24 24">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Strength indicator -->
+        <div class="strength-row">
+          <div class="strength-bar">
+            <div class="strength-bar-fill" id="strength-fill"></div>
+          </div>
+          <span class="strength-label" id="strength-text"></span>
+        </div>
+        <span class="field-hint">Minimum 5 characters</span>
+      </div>
+
+      <button type="submit" class="btn-primary">Create account</button>
+
+      <p class="terms">By signing up you agree to our Terms of Service and Privacy Policy.</p>
     </form>
 
-    <a href="{% url 'login' %}">login</a>
+    <div class="divider">or</div>
+
+    <p class="card-footer">
+      Already have an account? <a href="{% url 'login' %}">Sign in</a>
+    </p>
+
+  </div><!-- /card -->
+
+</div><!-- /page -->
+
+<script>
+  function togglePw(fieldId, btn) {
+    const input = document.getElementById(fieldId);
+    const isText = input.type === 'text';
+    input.type = isText ? 'password' : 'text';
+    btn.querySelector('svg').innerHTML = isText
+      ? '<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>'
+      : '<path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>';
+  }
+
+  function updateStrength(val) {
+    const fill  = document.getElementById('strength-fill');
+    const label = document.getElementById('strength-text');
+    const len   = val.length;
+
+    let score = 0;
+    if (len >= 5)  score++;
+    if (len >= 9)  score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+
+    const levels = [
+      { pct: '0%',   color: 'transparent', text: '' },
+      { pct: '25%',  color: '#f87171',     text: 'Weak' },
+      { pct: '50%',  color: '#fbbf24',     text: 'Fair' },
+      { pct: '75%',  color: '#7c6af7',     text: 'Good' },
+      { pct: '90%',  color: '#3ecf8e',     text: 'Strong' },
+      { pct: '100%', color: '#3ecf8e',     text: 'Great' },
+    ];
+
+    const lvl = levels[Math.min(score, 5)];
+    fill.style.width      = len === 0 ? '0%' : lvl.pct;
+    fill.style.background = lvl.color;
+    label.textContent     = len === 0 ? '' : lvl.text;
+    label.style.color     = len === 0 ? 'transparent' : lvl.color;
+  }
+</script>
+
 </body>
 </html>
