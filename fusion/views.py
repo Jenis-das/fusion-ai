@@ -370,11 +370,16 @@ class fusion(Authentications):
             "provider": judge_provider_name,
             **worker_models[judge_provider_name],
             "prompt": (
-                "You are a judge AI. Multiple AI assistants have answered the same question. "
-                "Carefully evaluate each response for accuracy, completeness, and clarity. "
-                "Then provide the single best, synthesized answer. "
-                # "Start with '## Best Answer' followed by your verdict, then a short '## Evaluation' "
+                # "You are a judge AI. Multiple AI assistants have answered the same question. "
+                # "Carefully evaluate each response for accuracy, completeness, and clarity. "
+                # "Then provide the single best, synthesized answer. "
+                # "Start with '## Best Answer' followed by your verdic"
                 # "section explaining which responses were strongest and why.",
+
+                "You are a judge AI. Multiple AI assistants have answered the same question. "
+                "Your task is to synthesize the best possible answer from all responses. "
+                "Do NOT provide any evaluation, reasoning, or explanation. "
+                "Only output the synthesized answer, starting with '## Best Answer' followed by the answer itself."
             )
         }
         

@@ -344,7 +344,7 @@ class llms:
         api_key    = groq_data.get("Api-key")
         model_name = groq_data.get("model_name")
         payload_messages = messages if messages is not None else [{"role": "user", "content": prompt}]
-
+        print(payload_messages)
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
